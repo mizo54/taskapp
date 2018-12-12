@@ -31,6 +31,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         searchbar.delegate = self
         // 検索バーに、何も入力されていなくてもReturnキーを押せるように
         searchbar.enablesReturnKeyAutomatically = false
+        searchbar.placeholder = "ここにカテゴリーを入力してください。"
     }
 
     override func didReceiveMemoryWarning() {
