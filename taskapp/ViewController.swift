@@ -10,8 +10,9 @@ import UIKit
 import RealmSwift         //  DB用
 import UserNotifications  //  通知用
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchbar: UISearchBar!
     
     // Realmインスタンスを取得する
     let realm = try! Realm()
@@ -24,8 +25,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+    
         tableView.delegate = self
         tableView.dataSource = self
+        searchbar.delegate = self
+        // 検索バーに、何も入力されていなくてもReturnキーを押せるように
+        searchbar.enablesReturnKeyAutomatically = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -96,7 +101,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 
-    // segue で画面遷移するに呼ばれる
+    // 検索実行（returnキー）押下時の呼び出しメソッド
+    func searchBarSearchButtonClicked(_ searchbar: UISearchBar) {
+
+        if (searchbar.text == "") {  // 検索キーとなる文字列が無ければ全件
+            taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: false)
+        } else {                     // 検索キーがカテゴリーと一致するものを抽出
+            taskArray = try! Realm().objects(Task.self).filter("category like %@",searchbar.text!).sorted(byKeyPath: "date", ascending: false)
+        }
+        
+        // テーブルを更新表示
+        viewWillAppear(true)
+        // キーボードを閉じる
+        searchbar.endEditing(true)
+    }
+    
+    // segue で画面遷移する時に呼ばれる
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         let inputViewController:InputViewController = segue.destination as! InputViewController
         
@@ -116,7 +136,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
     
-    // 入力画面から戻ってきた時に TableView を更新させる
+    // 入力画面から戻ってきた時に TableView を更新表示
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.reloadData()
